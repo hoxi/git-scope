@@ -87,7 +87,7 @@ public abstract class MyDvcsStatusWidget<T extends Repository> extends EditorBas
   @Nullable
   @Override
   public String getSelectedValue() {
-    return "➙ " + Defs.APPLICATION_NAME + ": " + myText;
+    return Defs.APPLICATION_NAME + ": " + myText;
   }
 
   @Nullable

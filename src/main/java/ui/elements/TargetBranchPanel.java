@@ -146,13 +146,15 @@ public class TargetBranchPanel extends JPanel implements Element {
 
             MyGitBranchPopup myGitBranchPopup = MyGitBranchPopup.getInstance(project, git.getRepository());
             ListPopup popup = myGitBranchPopup.asListPopup();
-            popup.showUnderneathOf(label);
+            //popup.showUnderneathOf(label);
 
             Object lastOpenedAt = myGitBranchPopup.getLastOpenedAt();
 
             if (lastOpenedAt instanceof JList) {
                 myGitBranchPopup.setPopupLastOpenedAtList();
             }
+
+            popup.cancel();
 
         });
     }
