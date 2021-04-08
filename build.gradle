@@ -22,8 +22,8 @@ dependencies {
 // SDK: Add PHPStorm manually
 
 intellij {
-    version 'LATEST-EAP-SNAPSHOT'
-    // version '2020.3.1'
+    //version 'LATEST-EAP-SNAPSHOT'
+    version '2021.1'
     plugins 'git4idea'
 
     // Run with PHPStorm
@@ -31,7 +31,7 @@ intellij {
 }
 
 patchPluginXml {
-    sinceBuild '203'
+    sinceBuild '211'
     untilBuild '999'
     changeNotes """
         <h2>Make available for current and future versions</h2>

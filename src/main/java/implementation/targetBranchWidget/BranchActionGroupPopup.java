@@ -5,7 +5,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -18,6 +17,7 @@ import com.intellij.openapi.util.WindowStateService;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vcs.ui.FlatSpeedSearchPopup;
 import com.intellij.openapi.vcs.ui.PopupListElementRendererWithIcon;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.*;
 import com.intellij.ui.components.panels.OpaquePanel;
 import com.intellij.ui.popup.KeepingPopupOpenAction;
@@ -53,8 +53,10 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
     private boolean myUserSizeChanged;
     private boolean myInternalSizeChanged;
     private int myMeanRowHeight;
-    @Nullable private final String myKey;
-    @NotNull private Dimension myPrevSize = JBUI.emptySize();
+    @Nullable
+    private final String myKey;
+    @NotNull
+    private Dimension myPrevSize = JBUI.emptySize();
 
     private final List<AnAction> mySettingsActions = new ArrayList<>();
     private final List<AnAction> myToolbarActions = new ArrayList<>();
@@ -64,8 +66,10 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
                                   @NotNull Condition<? super AnAction> preselectActionCondition,
                                   @NotNull ActionGroup actions,
                                   @Nullable String dimensionKey) {
-        super(title, createBranchSpeedSearchActionGroup(actions), SimpleDataContext.getProjectContext(project),
+        super(title, createBranchSpeedSearchActionGroup(actions),
+                DataManager.getInstance().getDataContext(IdeFocusManager.getInstance(project).getFocusOwner()),
                 preselectActionCondition, true);
+
         getTitle().setBackground(JBColor.PanelBackground);
         myProject = project;
         DataManager.registerDataProvider(getList(), dataId -> POPUP_MODEL.is(dataId) ? getListModel() : null);
@@ -201,8 +205,7 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
     public void addToolbarAction(@NotNull AnAction action, boolean underSettingsPopup) {
         if (underSettingsPopup) {
             mySettingsActions.add(action);
-        }
-        else {
+        } else {
             myToolbarActions.add(0, action);
         }
     }
@@ -238,7 +241,7 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
 
     private static List<AnAction> createSpeedSearchActions(@NotNull ActionGroup parentActionGroup, boolean isFirstLevel) {
         if (parentActionGroup instanceof HideableActionGroup) {
-            parentActionGroup = ((HideableActionGroup)parentActionGroup).getDelegate();
+            parentActionGroup = ((HideableActionGroup) parentActionGroup).getDelegate();
         }
 
         if (parentActionGroup instanceof BranchActionGroup) return Collections.emptyList();
@@ -248,15 +251,14 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
         if (!isFirstLevel) speedSearchActions.add(new Separator(parentActionGroup.getTemplatePresentation().getText()));
         for (AnAction child : parentActionGroup.getChildren(null)) {
             if (child instanceof ActionGroup) {
-                ActionGroup childGroup = (ActionGroup)child;
+                ActionGroup childGroup = (ActionGroup) child;
                 if (childGroup instanceof HideableActionGroup) {
-                    childGroup = ((HideableActionGroup)childGroup).getDelegate();
+                    childGroup = ((HideableActionGroup) childGroup).getDelegate();
                 }
 
                 if (isFirstLevel) {
                     speedSearchActions.addAll(createSpeedSearchActions(childGroup, false));
-                }
-                else if (childGroup instanceof BranchActionGroup) {
+                } else if (childGroup instanceof BranchActionGroup) {
                     speedSearchActions.add(createSpeedSearchActionGroupWrapper(childGroup));
                 }
             }
@@ -275,11 +277,10 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
     @Override
     public void handleSelect(boolean handleFinalChoices, InputEvent e) {
         BranchActionGroup branchActionGroup = getSelectedBranchGroup();
-        if (branchActionGroup != null && e instanceof MouseEvent && myListElementRenderer.isIconAt(((MouseEvent)e).getPoint())) {
+        if (branchActionGroup != null && e instanceof MouseEvent && myListElementRenderer.isIconAt(((MouseEvent) e).getPoint())) {
             branchActionGroup.toggle();
             getList().repaint();
-        }
-        else {
+        } else {
             super.handleSelect(handleFinalChoices, e);
         }
     }
@@ -290,8 +291,7 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
         if (branchActionGroup != null) {
             branchActionGroup.toggle();
             getList().repaint();
-        }
-        else {
+        } else {
             super.handleToggleAction();
         }
     }
@@ -322,7 +322,7 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
     protected boolean shouldBeShowing(@NotNull AnAction action) {
         if (!super.shouldBeShowing(action)) return false;
         if (getSpeedSearch().isHoldingFilter()) return !(action instanceof MoreAction);
-        if (action instanceof MoreHideableActionGroup) return ((MoreHideableActionGroup)action).shouldBeShown();
+        if (action instanceof MoreHideableActionGroup) return ((MoreHideableActionGroup) action).shouldBeShown();
         return true;
     }
 
@@ -333,7 +333,7 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
 
     private WizardPopup createListPopupStep(WizardPopup parent, PopupStep step, Object parentValue) {
         if (step instanceof ListPopupStep) {
-            return new BranchActionGroupPopup(parent, (ListPopupStep)step, parentValue);
+            return new BranchActionGroupPopup(parent, (ListPopupStep) step, parentValue);
         }
         return super.createPopup(parent, step, parentValue);
     }
@@ -381,13 +381,11 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
 
                 if (isSelected) {
                     setSelected(infoLabel);
-                }
-                else {
+                } else {
                     infoLabel.setBackground(getBackground());
                     infoLabel.setForeground(JBColor.GRAY);    // different foreground than for other elements
                 }
-            }
-            else {
+            } else {
                 infoLabel.setVisible(false);
             }
         }
@@ -436,12 +434,16 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
 
     private static class MoreAction extends DumbAwareAction implements KeepingPopupOpenAction {
 
-        @NotNull private final Project myProject;
-        @Nullable private final String mySettingName;
+        @NotNull
+        private final Project myProject;
+        @Nullable
+        private final String mySettingName;
         private final boolean myDefaultExpandValue;
         private boolean myIsExpanded;
-        @NotNull private final String myToCollapseText;
-        @NotNull private final String myToExpandText;
+        @NotNull
+        private final String myToCollapseText;
+        @NotNull
+        private final String myToExpandText;
 
         MoreAction(@NotNull Project project,
                    int numberOfHiddenNodes,
@@ -464,7 +466,7 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
             setExpanded(!myIsExpanded);
             InputEvent event = e.getInputEvent();
             if (event != null && event.getSource() instanceof JComponent) {
-                DataProvider dataProvider = DataManager.getDataProvider((JComponent)event.getSource());
+                DataProvider dataProvider = DataManager.getDataProvider((JComponent) event.getSource());
                 if (dataProvider != null) {
                     Objects.requireNonNull(POPUP_MODEL.getData(dataProvider)).refilter();
                 }
@@ -497,7 +499,8 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
     }
 
     private static class HideableActionGroup extends EmptyAction.MyDelegatingActionGroup implements MoreHideableActionGroup, DumbAware {
-        @NotNull private final MoreAction myMoreAction;
+        @NotNull
+        private final MoreAction myMoreAction;
 
         private HideableActionGroup(@NotNull ActionGroup actionGroup, @NotNull MoreAction moreAction) {
             super(actionGroup);
@@ -521,14 +524,13 @@ public class BranchActionGroupPopup extends FlatSpeedSearchPopup {
                                                   int maxIndex, @Nullable String settingName, boolean defaultExpandValue) {
         if (actionList.size() > maxIndex) {
             boolean hasFavorites =
-                    actionList.stream().anyMatch(action -> action instanceof BranchActionGroup && ((BranchActionGroup)action).isFavorite());
+                    actionList.stream().anyMatch(action -> action instanceof BranchActionGroup && ((BranchActionGroup) action).isFavorite());
             MoreAction moreAction = new MoreAction(project, actionList.size() - maxIndex, settingName, defaultExpandValue, hasFavorites);
             for (int i = 0; i < actionList.size(); i++) {
                 parentGroup.add(i < maxIndex ? actionList.get(i) : new HideableActionGroup(actionList.get(i), moreAction));
             }
             parentGroup.add(moreAction);
-        }
-        else {
+        } else {
             parentGroup.addAll(actionList);
         }
     }
